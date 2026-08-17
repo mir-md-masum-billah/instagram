@@ -4,6 +4,7 @@ import Post from "@/models/Post";
 import { getCurrentUser } from "@/lib/auth";
 import { deleteMediaFile, saveMediaFiles, MAX_IMAGE_COUNT } from "@/lib/upload";
 import { serializePost } from "../route";
+import { invalidateFeedCache } from "@/lib/getFeedPage";
 
 // Public: anyone (including guests) can open a shared post link and view it.
 export async function GET(req, { params }) {
@@ -113,5 +114,6 @@ export async function DELETE(req, { params }) {
   }
 
   await Post.findByIdAndDelete(id);
+  invalidateFeedCache();
   return NextResponse.json({ ok: true });
 }

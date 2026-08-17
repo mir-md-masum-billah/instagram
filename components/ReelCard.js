@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Heart, MessageCircle, Volume2, VolumeX, Send, Trash2, Pencil, X, Check, Share2 } from "lucide-react";
+import { Heart, MessageCircle, Volume2, VolumeX, Send, Trash2, Pencil, X, Check, Share2, Maximize2 } from "lucide-react";
 import { useCurrentUser } from "@/components/UserContext";
 import { notifyError, notifySuccess, confirmToast } from "@/lib/toast";
 import { hasViewedLocally, markViewedLocally } from "@/lib/viewedPosts";
+import VideoFullscreenPlayer from "@/components/VideoFullscreenPlayer";
 
 export default function ReelCard({ post, onDeleted, muted, onMuteChange, onWatched }) {
   const currentUser = useCurrentUser();
@@ -24,6 +25,7 @@ export default function ReelCard({ post, onDeleted, muted, onMuteChange, onWatch
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editText, setEditText] = useState("");
   const [speedLevel, setSpeedLevel] = useState(0); // 0 = normal (1x), 1 = 2x forward, -1 = rewinding
+  const [showFullscreen, setShowFullscreen] = useState(false);
 
   const SPEEDS = [1, 2];
   const holdTimerRef = useRef(null);
@@ -333,6 +335,41 @@ export default function ReelCard({ post, onDeleted, muted, onMuteChange, onWatch
       >
         {muted ? <VolumeX size={18} color="white" /> : <Volume2 size={18} color="white" />}
       </button>
+
+      {/* This reel's own gestures (hold-to-speed-up, drag-to-rewind) have no
+          visible timeline — this opens the same YouTube-style viewer used
+          elsewhere in the app, with a real seek bar. */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          const video = videoRef.current;
+          if (video) video.pause();
+          setShowFullscreen(true);
+        }}
+        className="absolute top-4 right-16 p-2 rounded-full"
+        style={{ background: "rgba(0,0,0,0.45)" }}
+        aria-label="View fullscreen with timeline"
+      >
+        <Maximize2 size={18} color="white" />
+      </button>
+
+      {showFullscreen && (
+        <VideoFullscreenPlayer
+          src={post.mediaUrl}
+          poster={post.thumbnailUrl}
+          initialTime={videoRef.current?.currentTime || 0}
+          initialMuted={muted}
+          onClose={({ time, muted: finalMuted }) => {
+            setShowFullscreen(false);
+            const video = videoRef.current;
+            if (video) {
+              video.currentTime = time;
+              video.play().catch(() => {});
+            }
+            if (finalMuted !== muted) onMuteChange(finalMuted);
+          }}
+        />
+      )}
 
       {/* Right action column */}
       <div

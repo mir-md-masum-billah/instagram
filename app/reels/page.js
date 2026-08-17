@@ -131,8 +131,14 @@ export default function ReelsPage() {
       ))}
       <div ref={sentinelRef} style={{ height: 1 }} />
       {loadingMore && (
-        <div className="flex justify-center py-4">
-          <Loader2 size={18} className="animate-spin" style={{ color: "var(--muted)" }} />
+        <div
+          className="snap-start w-full flex flex-col items-center justify-center gap-3"
+          style={{ height: "40dvh", background: "#000" }}
+        >
+          <Loader2 size={32} className="animate-spin" style={{ color: "var(--accent)" }} />
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            Loading more reels…
+          </p>
         </div>
       )}
     </div>

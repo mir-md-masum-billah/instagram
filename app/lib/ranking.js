@@ -50,12 +50,15 @@ export function rankPosts(posts, options = {}) {
     .map((p) => {
       const id = p._id.toString();
       const ageHours = Math.max(0, (Date.now() - new Date(p.createdAt).getTime()) / 36e5);
-      const likes = p.likeCount ?? p.likes?.length ?? 0;
-      const comments = p.commentCount ?? p.comments?.length ?? 0;
-      const views = (p.viewCount ?? p.views?.length ?? 0) + (p.anonymousViews || 0);
-      const saves = p.saveCount ?? p.saves?.length ?? 0;
-      const shares = p.shares ?? p.shareCount ?? 0;
-      const profileVisits = p.profileVisits ?? p.profileVisitCount ?? 0;
+      // These come pre-counted from getFeedPage's aggregation ($size on the
+      // underlying arrays), not the raw likes/comments/views/saves arrays
+      // themselves — ranking only ever needed the counts.
+      const likes = p.likeCount || 0;
+      const comments = p.commentCount || 0;
+      const views = (p.viewCount || 0) + (p.anonymousViews || 0);
+      const saves = p.saveCount || 0;
+      const shares = p.shareCount || 0;
+      const profileVisits = p.profileVisitCount || 0;
       const watchTimeMinutes = (p.watchTimeMs || 0) / 60000;
 
       const recentActivity = likes + comments + saves + shares;

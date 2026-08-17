@@ -4,7 +4,7 @@ import Post from "@/models/Post";
 import { getCurrentUser } from "@/lib/auth";
 import { saveMediaFiles, MAX_IMAGE_COUNT } from "@/lib/upload";
 import { generateExif } from "@/lib/exif";
-import { getFeedPage } from "@/lib/getFeedPage";
+import { getFeedPage, invalidateFeedCache } from "@/lib/getFeedPage";
 import { serializePost } from "@/lib/serializePost";
 
 // Re-exported for backward compatibility — other routes/pages still import
@@ -162,6 +162,8 @@ export async function POST(req) {
     const populated = await Post.findById(post._id)
       .populate("author", "username displayName avatar")
       .lean();
+
+    invalidateFeedCache();
 
     return NextResponse.json({ post: serializePost(populated, user._id) }, { status: 201 });
   } catch (err) {
